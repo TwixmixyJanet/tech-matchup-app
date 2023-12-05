@@ -1,62 +1,30 @@
-const { Profile } = require('../models');
-const { signToken, AuthenticationError } = require('../utils/auth');
+const { Tech, Matchup } = require('../models');
+
 
 const resolvers = {
   Query: {
-    profiles: async () => {
-      return Profile.find();
+    getAllTech: async () => {
+      return Tech.find({});
     },
-
-    profile: async (parent, { profileId }) => {
-      return Profile.findOne({ _id: profileId });
+    getAllMatchups: async () => {
+      return Matchup.find({});
+    },
+    getMatchup: async () => {
+      return Matchup.find({ _id: ID });
     },
   },
 
   Mutation: {
-    addProfile: async (parent, { name, email, password }) => {
-      const profile = await Profile.create({ name, email, password });
-      const token = signToken(profile);
-
-      return { token, profile };
-    },
-    login: async (parent, { email, password }) => {
-      const profile = await Profile.findOne({ email });
-
-      if (!profile) {
-        throw AuthenticationError;
-      }
-
-      const correctPw = await profile.isCorrectPassword(password);
-
-      if (!correctPw) {
-        throw AuthenticationError;
-      }
-
-      const token = signToken(profile);
-      return { token, profile };
-    },
-
-    addSkill: async (parent, { profileId, skill }) => {
-      return Profile.findOneAndUpdate(
-        { _id: profileId },
-        {
-          $addToSet: { skills: skill },
-        },
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
-    },
-    removeProfile: async (parent, { profileId }) => {
-      return Profile.findOneAndDelete({ _id: profileId });
-    },
-    removeSkill: async (parent, { profileId, skill }) => {
-      return Profile.findOneAndUpdate(
-        { _id: profileId },
-        { $pull: { skills: skill } },
+    createVote: async (parent, { _id, techNum }) => {
+      return await Matchup.findOneAndUpdate(
+        { _id: _id },
+        { $inc: { [`tech${techNum}_votes`]: 1 } },
         { new: true }
       );
+    },
+
+    createMatchup: async (parent, { body }) => {
+      return await Matchup.create(body);
     },
   },
 };
