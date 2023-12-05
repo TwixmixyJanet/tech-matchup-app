@@ -3,18 +3,26 @@ import { useParams, Link } from 'react-router-dom';
 import { getMatchup, createVote } from '../utils/api';
 
 // Uncomment import statements below after building queries and mutations
-// import { useQuery, useMutation } from '@apollo/client';
-// import { CREATE_VOTE } from '../utils/mutations';
-// import { QUERY_MATCHUPS } from '../utils/queries';
+import { useQuery, useMutation } from '@apollo/client';
+import { CREATE_VOTE } from '../utils/mutations';
+import { QUERY_MATCHUPS } from '../utils/queries';
 
 const Vote = () => {
   const [matchup, setMatchup] = useState({});
   let { id } = useParams();
 
+  const [getMatchup, { userData }] = useQuery(QUERY_MATCHUPS, {
+    variables: { _id: id },
+  });
+
+  const [createVote, { voteData }] = useMutation(CREATE_VOTE, {
+    variables: { _id: id, techNum: techNum }
+  });
+
   useEffect(() => {
     const getMatchupInfo = async () => {
       try {
-        const res = await getMatchup(id);
+        const res = await getMatchup({variables: { _id: id }});
         if (!res.ok) {
           throw new Error('No matchup');
         }
@@ -26,6 +34,8 @@ const Vote = () => {
     };
     getMatchupInfo();
   }, [id]);
+
+
 
   const handleVote = async (techNum) => {
     try {
